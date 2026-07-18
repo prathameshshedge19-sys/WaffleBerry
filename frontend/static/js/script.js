@@ -113,24 +113,65 @@ function enterWebsite() {
     }, 450);
 }
 
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
+    const fullName = email.split('@')[0]; // Use email prefix as full name
 
     if (!email || !password) {
         loginMessage.textContent =
             "Please enter your email and password.";
-
         return;
     }
 
-    /*
-    Prototype only:
-    Any non-empty email and password are accepted.
-    */
-    enterWebsite();
+    loginMessage.textContent = "Creating your account...";
+
+    try {
+        // Call backend API to create user
+        const response = await fetch(
+            "http://localhost:8000/api/v1/users",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    full_name: fullName,
+                    email: email,
+                    password: password,
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            loginMessage.textContent =
+                error.detail || "Failed to create account. Email might already exist.";
+            console.error("API Error:", error);
+            return;
+        }
+
+        const userData = await response.json();
+
+        // Store user info in browser storage
+        localStorage.setItem("user_id", userData.user_id);
+        localStorage.setItem("email", userData.email);
+        localStorage.setItem("full_name", userData.full_name);
+
+        loginMessage.textContent = "✅ Account created! Signing you in...";
+
+        // Enter website after short delay
+        window.setTimeout(() => {
+            enterWebsite();
+        }, 500);
+
+    } catch (error) {
+        console.error("Connection Error:", error);
+        loginMessage.textContent =
+            "❌ Cannot connect to server. Make sure backend is running at http://localhost:8000";
+    }
 });
 
 googleSignIn.addEventListener("click", () => {

@@ -51,9 +51,15 @@ app.include_router(project_router, prefix="/api/v1", tags=["projects"])
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """Serve the frontend index.html."""
-    if TEMPLATES_DIR.exists():
-        return templates.TemplateResponse("index.html", {"request": request})
-    return "<h1>🎤 Waffle Berry - Voice Cloning AI Platform</h1>"
+    try:
+        index_file = TEMPLATES_DIR / "index.html"
+        if index_file.exists():
+            with open(index_file, "r", encoding="utf-8") as f:
+                return f.read()
+    except Exception as e:
+        print(f"Error serving index.html: {e}")
+    
+    return "<h1>🎤 Waffle Berry - Backend Running</h1>"
 
 
 @app.get("/health")
