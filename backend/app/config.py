@@ -1,12 +1,25 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    """Application settings and configuration."""
+    
+    # App settings
     app_name: str = "Waffle Berry Backend"
     debug: bool = True
-
+    
+    # Database settings
+    database_url: str = "postgresql://user:password@localhost/waffle_berry"
+    
+    # API settings
+    api_v1_prefix: str = "/api/v1"
+    
     class Config:
         env_file = ".env"
 
 
-settings = Settings()
+@lru_cache()
+def get_settings() -> Settings:
+    """Get cached settings instance."""
+    return Settings()

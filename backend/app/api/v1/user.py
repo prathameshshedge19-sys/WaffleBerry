@@ -1,0 +1,330 @@
+"""API routes for voice profiles and related endpoints."""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.db import get_db
+from app.schemas.user import (
+    UserCreate, UserResponse, VoiceProfileCreate, VoiceProfileResponse, 
+    VoiceProfileUpdate, VoiceSampleCreate, VoiceSampleResponse,
+    ConversationCreate, ConversationResponse, MessageCreate, MessageResponse
+)
+from app.crud.user import (
+    UserCRUD, VoiceProfileCRUD, VoiceSampleCRUD, ConversationCRUD, MessageCRUD
+)
+
+router = APIRouter()
+
+
+# ==================== USER ENDPOINTS ====================
+
+@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    """Create a new user account.
+    
+    - **full_name**: User's full name
+    - **email**: User's email (must be unique)
+    - **password**: Password (minimum 8 characters)
+    """
+    # Check if email already exists
+    existing_user = UserCRUD.get_user_by_email(db, user.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    db_user = UserCRUD.create_user(db, user)
+    return db_user
+
+
+@router.get("/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: int, db: Session = Depends(get_db)):
+    """Get user details by ID."""
+    user = UserCRUD.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+    return user
+
+
+# ==================== VOICE PROFILE ENDPOINTS ====================
+
+@router.post("/voice-profiles", response_model=VoiceProfileResponse, status_code=status.HTTP_201_CREATED)
+async def create_voice_profile(
+    user_id: int,
+    voice_profile: VoiceProfileCreate,
+    db: Session = Depends(get_db)
+):
+    """Create a new voice profile for a user.
+    
+    This is the FIRST step in voice cloning:
+    1. User creates a voice profile (Mom, Dad, Mentor, etc.)
+    2. User uploads voice samples
+    3. AI trains on the samples
+    4. User can chat using that voice
+    
+    - **user_id**: The user creating this voice profile
+    - **voice_name**: Name of the voice (e.g., "Mom", "Dad")
+    - **relationship**: Relationship with the voice owner (e.g., "Mother", "Father")
+    - **language**: Language spoken (default: English)
+    - **accent**: Accent type (default: Standard)
+    """
+    # Verify user exists
+    user = UserCRUD.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+    
+    db_voice_profile = VoiceProfileCRUD.create_voice_profile(db, user_id, voice_profile)
+    return db_voice_profile
+
+
+@router.get("/voice-profiles/{voice_profile_id}", response_model=VoiceProfileResponse)
+async def get_voice_profile(voice_profile_id: int, db: Session = Depends(get_db)):
+    """Get a specific voice profile."""
+    voice_profile = VoiceProfileCRUD.get_voice_profile(db, voice_profile_id)
+    if not voice_profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice profile with id {voice_profile_id} not found"
+        )
+    return voice_profile
+
+
+@router.get("/users/{user_id}/voice-profiles", response_model=list[VoiceProfileResponse])
+async def get_user_voice_profiles(
+    user_id: int,
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """Get all voice profiles for a user."""
+    user = UserCRUD.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+    
+    voice_profiles = VoiceProfileCRUD.get_user_voice_profiles(db, user_id, skip, limit)
+    return voice_profiles
+
+
+@router.put("/voice-profiles/{voice_profile_id}", response_model=VoiceProfileResponse)
+async def update_voice_profile(
+    voice_profile_id: int,
+    voice_profile_update: VoiceProfileUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update a voice profile."""
+    db_voice_profile = VoiceProfileCRUD.update_voice_profile(db, voice_profile_id, voice_profile_update)
+    if not db_voice_profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice profile with id {voice_profile_id} not found"
+        )
+    return db_voice_profile
+
+
+@router.delete("/voice-profiles/{voice_profile_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_voice_profile(voice_profile_id: int, db: Session = Depends(get_db)):
+    """Delete a voice profile."""
+    success = VoiceProfileCRUD.delete_voice_profile(db, voice_profile_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice profile with id {voice_profile_id} not found"
+        )
+    return None
+
+
+# ==================== VOICE SAMPLE ENDPOINTS ====================
+
+@router.post("/voice-profiles/{voice_profile_id}/samples", response_model=VoiceSampleResponse, status_code=status.HTTP_201_CREATED)
+async def upload_voice_sample(
+    voice_profile_id: int,
+    sample: VoiceSampleCreate,
+    db: Session = Depends(get_db)
+):
+    """Upload a voice sample for a voice profile.
+    
+    This is STEP 2 in voice cloning:
+    1. User uploads voice samples (audio recordings)
+    2. Each sample must be at least 5 seconds
+    3. More samples = better training
+    
+    - **file_path**: Path where the file is stored (e.g., "/uploads/mom_sample_1.wav")
+    - **file_name**: Original filename
+    - **duration_seconds**: Duration of the audio
+    - **file_size_mb**: File size in MB
+    """
+    # Verify voice profile exists
+    voice_profile = VoiceProfileCRUD.get_voice_profile(db, voice_profile_id)
+    if not voice_profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice profile with id {voice_profile_id} not found"
+        )
+    
+    # Validate audio duration (minimum 5 seconds)
+    if sample.duration_seconds < 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Audio must be at least 5 seconds long"
+        )
+    
+    db_sample = VoiceSampleCRUD.create_voice_sample(db, voice_profile_id, sample)
+    return db_sample
+
+
+@router.get("/voice-profiles/{voice_profile_id}/samples", response_model=list[VoiceSampleResponse])
+async def get_voice_samples(
+    voice_profile_id: int,
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    """Get all voice samples for a voice profile."""
+    voice_profile = VoiceProfileCRUD.get_voice_profile(db, voice_profile_id)
+    if not voice_profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice profile with id {voice_profile_id} not found"
+        )
+    
+    samples = VoiceSampleCRUD.get_voice_samples(db, voice_profile_id, skip, limit)
+    return samples
+
+
+@router.delete("/samples/{sample_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_voice_sample(sample_id: int, db: Session = Depends(get_db)):
+    """Delete a voice sample."""
+    success = VoiceSampleCRUD.delete_voice_sample(db, sample_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sample with id {sample_id} not found"
+        )
+    return None
+
+
+# ==================== CONVERSATION ENDPOINTS ====================
+
+@router.post("/conversations", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
+async def create_conversation(
+    user_id: int,
+    conversation: ConversationCreate,
+    db: Session = Depends(get_db)
+):
+    """Start a new conversation with a cloned voice.
+    
+    This is STEP 3 in using the cloned voice:
+    1. User starts a conversation with a trained voice
+    2. User sends messages
+    3. AI responds in the cloned voice
+    
+    - **user_id**: User starting the conversation
+    - **voice_profile_id**: Which cloned voice to use
+    """
+    # Verify user exists
+    user = UserCRUD.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+    
+    # Verify voice profile exists and belongs to user
+    voice_profile = VoiceProfileCRUD.get_voice_profile(db, conversation.voice_profile_id)
+    if not voice_profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Voice profile with id {conversation.voice_profile_id} not found"
+        )
+    
+    if voice_profile.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Voice profile does not belong to this user"
+        )
+    
+    db_conversation = ConversationCRUD.create_conversation(db, user_id, conversation.voice_profile_id)
+    return db_conversation
+
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationResponse)
+async def get_conversation(conversation_id: int, db: Session = Depends(get_db)):
+    """Get a conversation."""
+    conversation = ConversationCRUD.get_conversation(db, conversation_id)
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Conversation with id {conversation_id} not found"
+        )
+    return conversation
+
+
+@router.get("/users/{user_id}/conversations", response_model=list[ConversationResponse])
+async def get_user_conversations(
+    user_id: int,
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """Get all conversations for a user."""
+    user = UserCRUD.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+    
+    conversations = ConversationCRUD.get_user_conversations(db, user_id, skip, limit)
+    return conversations
+
+
+# ==================== MESSAGE ENDPOINTS ====================
+
+@router.post("/conversations/{conversation_id}/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+async def create_message(
+    conversation_id: int,
+    message: MessageCreate,
+    db: Session = Depends(get_db)
+):
+    """Send a message in a conversation.
+    
+    - **message_text**: The user's message to the AI
+    """
+    # Verify conversation exists
+    conversation = ConversationCRUD.get_conversation(db, conversation_id)
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Conversation with id {conversation_id} not found"
+        )
+    
+    db_message = MessageCRUD.create_message(db, conversation_id, "user", message.message_text)
+    return db_message
+
+
+@router.get("/conversations/{conversation_id}/messages", response_model=list[MessageResponse])
+async def get_messages(
+    conversation_id: int,
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    """Get all messages in a conversation."""
+    conversation = ConversationCRUD.get_conversation(db, conversation_id)
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Conversation with id {conversation_id} not found"
+        )
+    
+    messages = MessageCRUD.get_conversation_messages(db, conversation_id, skip, limit)
+    return messages
