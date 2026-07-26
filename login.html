@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Sign in to Waffle Berry."
+    >
+
+    <title>Sign In | Waffle Berry</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Login screen with looping video -->
+    <section id="authScreen">
+
+        <!-- Blurred background video -->
+        <video
+            id="authBackgroundVideo"
+            autoplay
+            muted
+            playsinline
+            loop
+        >
+            <source
+                src="assets/waffle-berry-intro.mp4"
+                type="video/mp4"
+            >
+        </video>
+
+        <!-- Main looping video -->
+        <video
+            id="authMainVideo"
+            autoplay
+            muted
+            playsinline
+            loop
+        >
+            <source
+                src="assets/waffle-berry-intro.mp4"
+                type="video/mp4"
+            >
+        </video>
+
+        <!-- Dark overlay for readability -->
+        <div class="auth-overlay"></div>
+
+        <!-- Login card -->
+        <div class="auth-card">
+
+            <div class="auth-brand">
+                <span class="auth-brand-icon">🧇</span>
+
+                <div>
+                    <h1>Waffle Berry</h1>
+                    <p>We make people live forever.</p>
+                </div>
+            </div>
+
+            <div class="auth-heading">
+                <h2>Welcome back</h2>
+
+                <p>
+                    Sign in to continue your memories and conversations
+                    with Berry.
+                </p>
+            </div>
+
+            <button
+                id="googleSignIn"
+                class="social-login-button"
+                type="button"
+            >
+                <svg
+                    class="social-logo"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        fill="#4285F4"
+                        d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.38Z"
+                    />
+
+                    <path
+                        fill="#34A853"
+                        d="M12 22c2.7 0 4.98-.89 6.64-2.39l-3.24-2.51c-.9.6-2.05.96-3.4.96-2.61 0-4.82-1.76-5.61-4.13H3.05v2.59A10 10 0 0 0 12 22Z"
+                    />
+
+                    <path
+                        fill="#FBBC05"
+                        d="M6.39 13.93A6 6 0 0 1 6.08 12c0-.67.11-1.32.31-1.93V7.48H3.05A10 10 0 0 0 2 12c0 1.61.38 3.14 1.05 4.52l3.34-2.59Z"
+                    />
+
+                    <path
+                        fill="#EA4335"
+                        d="M12 5.94c1.47 0 2.79.51 3.83 1.5l2.88-2.88C16.97 2.94 14.7 2 12 2a10 10 0 0 0-8.95 5.48l3.34 2.59C7.18 7.7 9.39 5.94 12 5.94Z"
+                    />
+                </svg>
+
+                <span>Continue with Google</span>
+            </button>
+
+            <button
+                id="appleSignIn"
+                class="social-login-button apple-login-button"
+                type="button"
+            >
+                <svg
+                    class="social-logo"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        fill="currentColor"
+                        d="M16.7 12.9c0-2.3 1.9-3.4 2-3.5a4.3 4.3 0 0 0-3.4-1.8c-1.5-.2-2.9.9-3.6.9-.8 0-1.9-.9-3.1-.9a4.6 4.6 0 0 0-3.9 2.4c-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 3 2.3 1.1-.1 1.6-.8 3-.8s1.8.8 3 .8c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.4-.9-2.4-3.9Zm-2.4-6.8c.7-.8 1.1-1.9 1-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2-.5 2.7-1.3Z"
+                    />
+                </svg>
+
+                <span>Continue with Apple</span>
+            </button>
+
+            <div class="auth-divider">
+                <span></span>
+                <p>or continue with email</p>
+                <span></span>
+            </div>
+
+            <form id="loginForm">
+
+                <div class="form-group">
+                    <label for="emailInput">
+                        Email address
+                    </label>
+
+                    <input
+                        id="emailInput"
+                        type="email"
+                        placeholder="name@example.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+
+                    <div class="password-label-row">
+                        <label for="passwordInput">
+                            Password
+                        </label>
+
+                        <button
+                            class="forgot-password"
+                            type="button"
+                        >
+                            Forgot password?
+                        </button>
+                    </div>
+
+                    <div class="password-field">
+                        <input
+                            id="passwordInput"
+                            type="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            id="togglePassword"
+                            class="password-toggle"
+                            type="button"
+                            aria-label="Show password"
+                        >
+                            👁
+                        </button>
+                    </div>
+
+                </div>
+
+                <label class="remember-row">
+                    <input
+                        id="rememberMe"
+                        type="checkbox"
+                    >
+
+                    <span>Remember me</span>
+                </label>
+
+                <button
+                    class="login-button"
+                    type="submit"
+                >
+                    <span>Sign in</span>
+                    <span class="login-arrow">→</span>
+                </button>
+
+            </form>
+
+            <p class="signup-message">
+                New to Waffle Berry?
+
+                <button
+                    id="createAccountButton"
+                    type="button"
+                >
+                    Create an account
+                </button>
+            </p>
+
+            <p
+                id="loginMessage"
+                class="login-message"
+                aria-live="polite"
+            ></p>
+
+        </div>
+
+    </section>
+    <script src="js/login.js"></script>
+</body>
+
+</html>

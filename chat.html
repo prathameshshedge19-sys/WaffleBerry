@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Chat with Berry, your Waffle Berry AI companion."
+    >
+
+    <title>Chat | Waffle Berry</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <main id="website" class="website-unlocked">
+
+        <!-- Decorative floating particles -->
+        <div class="particles" aria-hidden="true">
+            <span class="particle particle-1">✦</span>
+            <span class="particle particle-2">●</span>
+            <span class="particle particle-3">♥</span>
+            <span class="particle particle-4">✦</span>
+            <span class="particle particle-5">●</span>
+            <span class="particle particle-6">♥</span>
+            <span class="particle particle-7">✦</span>
+            <span class="particle particle-8">●</span>
+        </div>
+
+        <!-- Navigation -->
+        <header class="navbar">
+
+            <a href="home.html" class="brand">
+                <span class="brand-icon">🧇</span>
+
+                <span class="brand-text">
+                    Waffle Berry
+                </span>
+            </a>
+
+            <nav class="nav-links" aria-label="Main navigation">
+
+                <a
+                    class="nav-link"
+                    href="home.html"
+                >
+                    Home
+                </a>
+
+                <a
+                    class="nav-link active"
+                    href="chat.html"
+                >
+                    Chat
+                </a>
+
+                <a
+                    class="nav-link"
+                    href="mission.html"
+                >
+                    Mission
+                </a>
+
+            </nav>
+
+            <div class="navbar-actions">
+
+                <a
+                    class="logout-button"
+                    href="login.html"
+                    title="Sign out"
+                >
+                    Sign out
+                </a>
+
+                <button
+                    id="themeToggle"
+                    class="theme-toggle"
+                    type="button"
+                    aria-label="Switch to dark mode"
+                >
+                    <span id="themeIcon">🌙</span>
+                </button>
+
+            </div>
+
+        </header>
+
+        <!-- Chat section -->
+        <section
+            id="chatSection"
+            class="page-section active-section"
+        >
+
+            <div class="chat-layout">
+
+                <aside class="assistant-panel glass-panel">
+
+                    <img
+                        src="assets/waffle-berry-mascot.png"
+                        alt="Berry assistant"
+                        class="chat-mascot"
+                    >
+
+                    <h2>Berry</h2>
+
+                    <p>
+                        Your warm and thoughtful AI memory companion.
+                    </p>
+
+                    <div class="assistant-status">
+                        <span class="status-dot"></span>
+                        Online
+                    </div>
+
+                    <a
+                        class="secondary-button"
+                        href="home.html"
+                    >
+                        ← Back Home
+                    </a>
+
+                </aside>
+
+                <section class="chat-window glass-panel">
+
+                    <header class="chat-header">
+
+                        <div>
+                            <h2>Conversation with Berry</h2>
+
+                            <p>
+                                Share a memory, story or meaningful moment.
+                            </p>
+                        </div>
+
+                        <button
+                            id="clearChatButton"
+                            class="icon-button"
+                            type="button"
+                            aria-label="Clear conversation"
+                        >
+                            🗑️
+                        </button>
+
+                    </header>
+
+                    <div
+                        id="chatMessages"
+                        class="chat-messages"
+                        aria-live="polite"
+                    >
+
+                        <div class="message-row berry-row">
+
+                            <img
+                                src="assets/waffle-berry-mascot.png"
+                                alt=""
+                                class="message-avatar"
+                            >
+
+                            <div class="message berry-message">
+                                Hello! I’m Berry. Tell me about a memory,
+                                a person you love or a story you never want
+                                to forget.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="typingIndicator"
+                        class="typing-indicator"
+                        aria-hidden="true"
+                    >
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <form
+                        id="chatForm"
+                        class="chat-input-area"
+                    >
+
+                        <button
+                            class="input-icon-button"
+                            type="button"
+                        >
+                            ＋
+                        </button>
+
+                        <input
+                            id="chatInput"
+                            type="text"
+                            placeholder="Share a memory with Berry..."
+                            autocomplete="off"
+                            maxlength="500"
+                            required
+                        >
+
+                        <button
+                            class="send-button"
+                            type="submit"
+                        >
+                            ➤
+                        </button>
+
+                    </form>
+
+                </section>
+
+            </div>
+
+        </section>
+
+    </main>
+    <script src="js/theme.js"></script>
+    <script src="js/chat.js"></script>
+</body>
+
+</html>
