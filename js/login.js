@@ -280,6 +280,16 @@ if (
 
                 enterWebsite();
             } catch (error) {
+                if (!isRegisterMode) {
+                    localStorage.removeItem(
+                        "accessToken"
+                    );
+
+                    localStorage.removeItem(
+                        "currentUser"
+                    );
+                }
+
                 if (loginMessage) {
                     loginMessage.textContent =
                         error.message;
