@@ -2,6 +2,10 @@
 
 ## Backend Architecture Overview
 
+The backend is an API-only FastAPI service. It owns API routes, validation, business/data-access logic, and database persistence. It does not contain or serve the browser frontend, HTML templates, CSS, or JavaScript.
+
+The frontend lives in the separate `WaffleBerry_website` project and calls this service over HTTP (for local development, the API base URL is `http://127.0.0.1:8000`). CORS middleware permits those cross-origin requests.
+
 ### Folder Structure
 ```
 backend/
@@ -108,9 +112,8 @@ Uses dependency injection for database session
 Initializes FastAPI with:
 - Database table creation
 - CORS middleware configuration
-- Static file mounting
-- Template rendering setup
-- Router registration
+- User and project router registration under `/api/v1`
+- A simple root status response (not a frontend page)
 - Health check endpoints
 ```
 
@@ -165,6 +168,8 @@ python run.py
 ```
 
 The server will start at `http://localhost:8000`
+
+This address is the API server only. Open or serve the separate `WaffleBerry_website` project independently; the backend does not host it.
 
 ### 3. Access API Documentation
 - **Swagger UI**: http://localhost:8000/docs

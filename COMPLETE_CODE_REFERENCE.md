@@ -2,6 +2,8 @@
 
 ## Summary of All Backend Files
 
+This repository is an API-only FastAPI backend. The browser UI has been removed from the backend and now lives in the separate `WaffleBerry_website` project. That frontend is run or hosted independently and communicates with this service through the `/api/v1` JSON endpoints. No frontend templates, static assets, CSS, or JavaScript are served by this backend.
+
 ---
 
 ## 1. **requirements.txt** - Dependencies
@@ -303,29 +305,21 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
 ```python
 """FastAPI application initialization and setup."""
 
-from pathlib import Path
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.project import router as project_router
-from app.db import Base, engine, SessionLocal
-
-# Setup paths
-ROOT_DIR = Path(__file__).resolve().parents[2]
-FRONTEND_DIR = ROOT_DIR / "frontend"
-STATIC_DIR = FRONTEND_DIR / "static"
-TEMPLATES_DIR = FRONTEND_DIR / "templates"
+from app.api.v1.user import router as user_router
+from app.db import Base, engine
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Waffle Berry Backend",
-    description="FastAPI backend serving the Waffle Berry application",
+    title="Waffle Berry - Voice Cloning AI",
+    description="AI platform for cloning voices and having conversations with loved ones",
     version="1.0.0",
 )
 
@@ -338,22 +332,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-# Setup templates
-templates = Jinja2Templates(directory=TEMPLATES_DIR)
-
 # Include routers
+app.include_router(user_router, prefix="/api/v1", tags=["users", "voice-profiles", "conversations"])
 app.include_router(project_router, prefix="/api/v1", tags=["projects"])
 
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """Serve the frontend index.html."""
-    if TEMPLATES_DIR.exists():
-        return templates.TemplateResponse("index.html", {"request": request})
+async def read_root():
+    """Return a simple backend status page."""
     return "<h1>Waffle Berry - Backend Running</h1>"
 
 
@@ -385,7 +371,6 @@ async def api_health_check():
 
 import uvicorn
 import sys
-from pathlib import Path
 
 # Add backend directory to path
 backend_dir = Path(__file__).resolve().parent
@@ -523,7 +508,7 @@ Response: `204 No Content`
 ## Architecture Flow
 
 ```
-Frontend Request
+Separate WaffleBerry_website frontend HTTP/JSON request
        ↓
 app/main.py (FastAPI app)
        ↓
@@ -539,7 +524,7 @@ app/models/project.py (ORM)
        ↓
 Database (SQLite/PostgreSQL)
        ↓
-Response → Frontend
+JSON response → Separate WaffleBerry_website frontend
 ```
 
 ---
@@ -551,7 +536,7 @@ Response → Frontend
 ✅ SQLAlchemy ORM integration
 ✅ Automatic API documentation (Swagger UI)
 ✅ CORS support
-✅ Static file serving
+API-only deployment, independent from the frontend
 ✅ Error handling with proper status codes
 ✅ Database session management
 ✅ Pagination support

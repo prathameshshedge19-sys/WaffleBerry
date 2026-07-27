@@ -1,5 +1,11 @@
 # 🚀 Complete Waffle Berry API Testing Guide
 
+## Current Architecture
+
+The backend is an API-only FastAPI service. It exposes JSON endpoints and API documentation, but it does not host frontend HTML, CSS, JavaScript, templates, or static files.
+
+The frontend resides in the separate `WaffleBerry_website` project. Run or host that project independently; it communicates with this backend over HTTP. During local development the frontend uses `http://127.0.0.1:8000` as the API origin. Swagger UI and the commands in this guide test the backend directly and do not start or serve the frontend.
+
 ## ✅ **What We Just Built**
 
 A **complete end-to-end voice cloning workflow** with these endpoints:
@@ -458,7 +464,7 @@ MESSAGES TABLE (1+ records)
 
 Now that the backend is working:
 
-1. **Frontend Integration**: Update your frontend to call these APIs
+1. **Frontend Integration**: Run the separate `WaffleBerry_website` project and connect it to these API endpoints
 2. **AI Integration**: Add OpenAI + Whisper + XTTS v2 to process messages
 3. **File Uploads**: Implement proper audio file upload handling
 4. **Authentication**: Add JWT tokens for security
@@ -489,6 +495,8 @@ Now that the backend is working:
 Always available at: **http://localhost:8000/docs**
 
 **Alternative documentation:** http://localhost:8000/redoc
+
+These URLs expose backend API documentation only. The WaffleBerry website is opened from its separate `WaffleBerry_website` project, not from the backend server.
 
 ---
 

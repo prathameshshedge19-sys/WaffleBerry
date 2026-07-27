@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User, VoiceProfile, VoiceSample, Conversation, Message
 from app.schemas.user import UserCreate, VoiceProfileCreate, VoiceProfileUpdate, VoiceSampleCreate
 import hashlib
+import hmac
 
 
 def hash_password(password: str) -> str:
@@ -33,6 +34,19 @@ class UserCRUD:
     def get_user_by_email(db: Session, email: str) -> User | None:
         """Get user by email."""
         return db.query(User).filter(User.email == email).first()
+
+    @staticmethod
+    def authenticate_user(db: Session, email: str, password: str) -> User | None:
+        """Authenticate a user by email and password."""
+        user = UserCRUD.get_user_by_email(db, email)
+        if not user:
+            return None
+
+        password_hash = hash_password(password)
+        if not hmac.compare_digest(password_hash, user.password_hash):
+            return None
+
+        return user
     
     @staticmethod
     def get_user(db: Session, user_id: int) -> User | None:

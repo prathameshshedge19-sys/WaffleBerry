@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 
 # ==================== USER SCHEMAS ====================
@@ -18,6 +18,12 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8, description="Password must be at least 8 characters")
 
 
+class UserLogin(BaseModel):
+    """Schema for authenticating a user."""
+    email: EmailStr
+    password: str
+
+
 class UserResponse(UserBase):
     """Schema for user response."""
     user_id: int
@@ -25,6 +31,13 @@ class UserResponse(UserBase):
     
     class Config:
         from_attributes = True
+
+
+class LoginResponse(BaseModel):
+    """Schema returned after successful authentication."""
+    access_token: str
+    token_type: Literal["bearer"]
+    user: UserResponse
 
 
 # ==================== VOICE PROFILE SCHEMAS ====================

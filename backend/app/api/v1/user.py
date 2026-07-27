@@ -3,14 +3,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db import get_db
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 from app.schemas.user import (
-    UserCreate, UserResponse, VoiceProfileCreate, VoiceProfileResponse, 
+    UserCreate, UserLogin, UserResponse, LoginResponse, VoiceProfileCreate, VoiceProfileResponse, 
     VoiceProfileUpdate, VoiceSampleCreate, VoiceSampleResponse,
     ConversationCreate, ConversationResponse, MessageCreate, MessageResponse
 )
 from app.crud.user import (
     UserCRUD, VoiceProfileCRUD, VoiceSampleCRUD, ConversationCRUD, MessageCRUD
 )
+
+from app.services.token_service import create_access_token
+
 
 router = APIRouter()
 
@@ -36,6 +41,31 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = UserCRUD.create_user(db, user)
     return db_user
 
+
+@router.post("/login", response_model=LoginResponse)
+async def login(user: UserLogin, db: Session = Depends(get_db)):
+    """Authenticate a user with an email and password."""
+    authenticated_user = UserCRUD.authenticate_user(db, user.email, user.password)
+    if not authenticated_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token = create_access_token(authenticated_user.user_id)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": authenticated_user,
+    }
+
+@router.get("/me", response_model=UserResponse)
+async def read_current_user(
+    current_user: User = Depends(get_current_user),
+):
+    """Return the user authenticated by the Bearer access token."""
+    return current_user
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, db: Session = Depends(get_db)):
