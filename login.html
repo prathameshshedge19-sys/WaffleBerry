@@ -68,9 +68,9 @@
             </div>
 
             <div class="auth-heading">
-                <h2>Welcome back</h2>
+                <h2 id="authTitle">Welcome back</h2>
 
-                <p>
+                <p id="authDescription">
                     Sign in to continue your memories and conversations
                     with Berry.
                 </p>
@@ -137,6 +137,23 @@
 
             <form id="loginForm">
 
+                <div
+                    id="fullNameGroup"
+                    class="form-group"
+                    hidden
+                >
+                    <label for="fullNameInput">
+                        Full Name
+                    </label>
+
+                    <input
+                        id="fullNameInput"
+                        type="text"
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                    >
+                </div>
+
                 <div class="form-group">
                     <label for="emailInput">
                         Email address
@@ -197,23 +214,26 @@
                 </label>
 
                 <button
+                    id="authSubmitButton"
                     class="login-button"
                     type="submit"
                 >
-                    <span>Sign in</span>
+                    <span id="authSubmitText">Sign in</span>
                     <span class="login-arrow">→</span>
                 </button>
 
             </form>
 
             <p class="signup-message">
-                New to Waffle Berry?
+                <span id="authTogglePrompt">
+                    Don't have an account?
+                </span>
 
                 <button
                     id="createAccountButton"
                     type="button"
                 >
-                    Create an account
+                    Create Account
                 </button>
             </p>
 
